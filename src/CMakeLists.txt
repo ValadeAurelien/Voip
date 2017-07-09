@@ -1,8 +1,8 @@
 
-qt5_wrap_cpp(mainwindow_SRC ${INC_DIR}/mainwindow.h)
-qt5_wrap_cpp(auxwindows_SRC ${INC_DIR}/auxwindows.h)
+qt5_wrap_cpp(windows_SRC ${INC_DIR}/windows.h)
+qt5_wrap_cpp(application_SRC ${INC_DIR}/application.h)
 
-add_executable(main mainwindow.cpp auxwindows.cpp main.cpp ${mainwindow_SRC} ${auxwindows_SRC})
+add_executable(main main.cpp windows.cpp application.cpp ${windows_SRC} ${application_SRC})
 target_link_libraries(main Qt5::Widgets Qt5::Network)
 
 # Output directory

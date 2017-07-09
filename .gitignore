@@ -1,5 +1,6 @@
 build/**
 src/CMakeFiles/**
+src/Makefile
 src/src_autogen/**
 *.swp
 *.swo
