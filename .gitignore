@@ -1,0 +1,9 @@
+build/**
+src/CMakeFiles/**
+src/src_autogen/**
+*.swp
+*.swo
+*.cmake
+*.o
+*.a
+
