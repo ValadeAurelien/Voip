@@ -36,7 +36,7 @@ struct SocketStateName
                               "ConnectingStat",
                               "ConnectedState",
                               "BoundState",
-                              "ClosingState	",
+                              "ClosingState",
                               "ListeningState"};
 };
 
