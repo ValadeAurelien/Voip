@@ -7,14 +7,14 @@
 MainWindow::MainWindow(Application *_application) : QWidget(), application(_application)
 {
   setWindowTitle("New Message");
-  la_hostaddress = new QLabel("Host Address : None");
+  la_hostinformation = new QLabel("Host Address : None\nState : Unknown");
   la_entermessage = new QLabel("Enter message : ");
   le_messagein = new QLineEdit;
   button_quit = new QPushButton("Quit");
   button_connect = new QPushButton("Connect");
   button_send = new QPushButton("Send");
   grid = new QGridLayout(this);
-  grid->addWidget(la_hostaddress, 0, 0, 1, 3);
+  grid->addWidget(la_hostinformation, 0, 0, 1, 3);
   grid->addWidget(la_entermessage, 1, 0, 1, 1); grid->addWidget(le_messagein, 1, 1, 1, 2);
   grid->addWidget(button_quit, 2, 0, 1, 1); grid->addWidget(button_connect, 2, 1, 1, 1); grid->addWidget(button_send, 2, 2, 1, 1);
 
@@ -26,9 +26,10 @@ MainWindow::MainWindow(Application *_application) : QWidget(), application(_appl
   connect(button_connect, SIGNAL(clicked()), application, SLOT(showConnectionWindow()));
 }
 
-void MainWindow::updateLaHostAddress() 
+void MainWindow::updateLaHostInformation() 
 { 
-  la_hostaddress->setText("Host Address : " + application->get_hostaddress().toString()); 
+  la_hostinformation->setText("Host Address : " + application->get_hostaddress().toString() + " (port : " + QString("%1").arg(application->get_port()) + ") \n"
+                           + "State : " + application->get_socketstatename()); 
 }
 
 bool MainWindow::flush()

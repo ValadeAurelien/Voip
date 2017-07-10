@@ -22,7 +22,7 @@ class MainWindow : public QWidget
   
   private slots:
     bool flush();
-    void updateLaHostAddress();
+    void updateLaHostInformation();
     
   private : 
     Application *application;
@@ -30,7 +30,7 @@ class MainWindow : public QWidget
     QPushButton *button_quit,
                 *button_send,
                 *button_connect;
-    QLabel * la_hostaddress,
+    QLabel * la_hostinformation,
            * la_entermessage;
     QLineEdit *le_messagein;
     QGridLayout *grid;

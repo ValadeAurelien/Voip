@@ -13,6 +13,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 #set(CMAKE_AUTOMOC ON)
 
+set(CXX_FLAGS "-std=c++11")
+
 # Includes directory
 set(INC_DIR ${PROJECT_SOURCE_DIR}/includes)
 include_directories(${INC_DIR})

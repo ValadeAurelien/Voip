@@ -8,31 +8,36 @@
 
 struct SocketErrorName
 {
-  QString operator()(int i) const { return QString(errors[i+1]); } 
-  char * errors [] = {"UnknownSocketError" ,
-                      "ConnectionRefusedError" ,
-                      "RemoteHostClosedError" ,
-                      "HostNotFoundError" ,
-                      "SocketAccessError" ,
-                      "SocketResourceError" ,
-                      "SocketTimeoutError" ,
-                      "DatagramTooLargeError" ,
-                      "NetworkError" ,
-                      "AddressInUseError" ,
-                      "SocketAddressNotAvailableError" ,
-                      "UnsupportedSocketOperationError" ,
-                      "ProxyAuthenticationRequiredError" ,
-                      "SslHandshakeFailedError" ,
-                      "UnfinishedSocketOperationError" ,
-                      "ProxyConnectionRefusedError" ,
-                      "ProxyConnectionClosedError" ,
-                      "ProxyConnectionTimeoutError" ,
-                      "ProxyNotFoundError" ,
-                      "ProxyProtocolError" ,
-                      "OperationError" ,
-                      "SslInternalError" ,
-                      "SslInvalidUserDataError" ,
-                      "TemporaryError"};
+  const char* operator()(int i) const { return errors[i+1]; } 
+  const char* errors [24] = {"UnknownSocketError", "ConnectionRefusedError",
+                              "RemoteHostClosedError", "HostNotFoundError",
+                              "SocketAccessError", "SocketResourceError",
+                              "SocketTimeoutError", "DatagramTooLargeError",
+                              "NetworkError", "AddressInUseError",
+                              "SocketAddressNotAvailableError",
+                              "UnsupportedSocketOperationError",
+                              "ProxyAuthenticationRequiredError",
+                              "SslHandshakeFailedError",
+                              "UnfinishedSocketOperationError",
+                              "ProxyConnectionRefusedError", 
+                              "ProxyConnectionClosedError", 
+                              "ProxyConnectionTimeoutError",
+                              "ProxyNotFoundError", "ProxyProtocolError",
+                              "OperationError", "SslInternalError",
+                              "SslInvalidUserDataError",
+                              "TemporaryError"};
+};
+
+struct SocketStateName
+{
+  const char* operator()(int i) const { return states[i+1]; } 
+  const char* states [7] = {"UnconnectedState",
+                              "HostLookupState",
+                              "ConnectingStat",
+                              "ConnectedState",
+                              "BoundState",
+                              "ClosingState	",
+                              "ListeningState"};
 };
 
 class Application : public QObject
@@ -50,6 +55,8 @@ class Application : public QObject
     inline void showCryptoWindow() { cryptowindow.show(); }
 
     inline const QHostAddress& get_hostaddress() { return hostaddress; }
+    inline const char* get_socketstatename() { return socketstatename(udpsocket.state()); }
+    inline const qint16& get_port() { return port; }
   private :
     MainWindow mainwindow;
     ConnectionWindow connectionwindow;
@@ -61,6 +68,9 @@ class Application : public QObject
     qint16 port;
 
     SocketErrorName socketerrorname;
+    SocketStateName socketstatename;
+
+    static const unsigned delayconnection = 3000;
 };
 
 #endif

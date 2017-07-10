@@ -4,7 +4,7 @@
 Application::Application() : QObject(), mainwindow(this), connectionwindow(this), cryptowindow(this)
 {
   connect(&udpsocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
-  connect(&udpsocket, SIGNAL(connected()), &connectionwindow, SLOT(close()));
+  connect(&udpsocket, SIGNAL(connected()), &mainwindow, SLOT(updateLaHostInformation()));
 //  connect(udp_socket, SIGNAL(connected()), this, SLOT(emitconnectionSucceeded));   
 }
 
@@ -30,10 +30,12 @@ void Application::attemptConnectToHost()
     return;
   }
   udpsocket.connectToHost(hostaddress, port);
+  if (!udpsocket.waitForConnected(delayconnection)) connectionFailed(udpsocket.error());
+  else connectionwindow.close();
 }
 
 void Application::connectionFailed(QAbstractSocket::SocketError SErr)
 {
-  alertwindow.setMessage("Connection Failed... : " + socketerrorname(SErr));
+  alertwindow.setMessage(QString("Connection Failed : ") + socketerrorname(SErr));
   alertwindow.show();
 }
