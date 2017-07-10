@@ -30,7 +30,7 @@ struct SocketErrorName
 
 struct SocketStateName
 {
-  const char* operator()(int i) const { return states[i+1]; } 
+  const char* operator()(int i) const { return states[i]; } 
   const char* states [7] = {"UnconnectedState",
                               "HostLookupState",
                               "ConnectingStat",
