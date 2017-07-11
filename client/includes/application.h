@@ -6,9 +6,10 @@
 #include <QHostAddress>
 #include "windows.h"
 #include "socketmembersnames.h"
+#include "identity.h"
+#include "datagram.h"
+#include "message.h"
 #define MAXSIZEMESSSAGEIN 262144
-#define DATAGRAMSIZE 512
-
 
 class Application : public QObject
 {
@@ -19,6 +20,7 @@ class Application : public QObject
     void sendMessage();
     void attemptConnectToHost();
     void connectionFailed(QAbstractSocket::SocketError SErr);
+    void sendIdentity();
     
     inline void showMainWindow() { mainwindow.show(); }
     inline void showConnectionWindow() { connectionwindow.show(); }
@@ -32,16 +34,14 @@ class Application : public QObject
     void messageSent();
 
   private :
+    bool sendOutDatagram();
     MainWindow mainwindow;
     ConnectionWindow connectionwindow;
     CryptoWindow cryptowindow;
     AlertWindow alertwindow;
 
-    QByteArray ba_messagein;
-    static const size_t maxsize_messagein = MAXSIZEMESSSAGEIN;
-    int nbdg2send_messagein,
-        nbdgsent_messagein, 
-        totnbdatagramsent_messagein;
+    OutMessage outmessage;
+    InMessage inmessage;
 
     static const size_t datagramsize = DATAGRAMSIZE;
     QUdpSocket udpsocket;
@@ -52,6 +52,9 @@ class Application : public QObject
     SocketStateName socketstatename;
 
     static const unsigned delayconnection = 3000;
+
+    Identity identity;
+    DatagramHD outdatagram;
 };
 
 #endif

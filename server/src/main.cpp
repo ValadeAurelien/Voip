@@ -7,7 +7,6 @@ int main(int argc, char *argv[])
 {
   QApplication Qapp (argc, argv);
   ServerApp* serverapp = new ServerApp();
-  serverapp->listenAndCout();
 
   return Qapp.exec();
 }

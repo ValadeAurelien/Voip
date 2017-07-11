@@ -1,4 +1,6 @@
 #include "serverapp.h"
+#include "datagram.h"
+#include "identity.h"
 #include <QString>
 #include <iostream>
 #include <string>
@@ -8,11 +10,23 @@ ServerApp::ServerApp() : QObject()
 {
   udpsocket.bind(QHostAddress::LocalHost, port);
   connect(&udpsocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(bindingFailed(QAbstractSocket::SocketError)));
+  connect(&udpsocket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
 }
 
-void ServerApp::listenAndCout()
+void ServerApp::treatInDatagram()
 {
-  connect(&udpsocket, SIGNAL(readyRead()), this, SLOT(coutMessage()));
+  udpsocket.readDatagram((char*) &indatagram, DATAGRAMSIZE, &host1address, &host1port);
+  switch( indatagram.dheader.type )
+  {
+    case IDENTITY:
+      coutIdentity();
+      break;
+    case MESSAGE:
+      coutMessage();
+    default:
+      reportError("Package corrupted");
+      break;
+  }
 }
 
 void ServerApp::bindingFailed(QAbstractSocket::SocketError serr)
@@ -22,15 +36,22 @@ void ServerApp::bindingFailed(QAbstractSocket::SocketError serr)
 
 void ServerApp::coutMessage()
 {
-  host1dginsize = udpsocket.pendingDatagramSize();
-  if (host1dginsize > ba_host1messagein.capacity()) ba_host1messagein.resize(host1dginsize);
-  udpsocket.readDatagram(ba_host1messagein.data(), host1dginsize, &host1address, &host1port);
   std::cout << "Message from : " << host1address.toString().toStdString() << ":" << host1port 
-            << " (" << ba_host1messagein.size() << " bytes) > " 
-            << QString(ba_host1messagein).toStdString() << std::endl;
+            << " (" << indatagram.ddata.messagehd.header.size  << " bytes) > " 
+            << QString().fromUtf8(indatagram.ddata.messagehd.data, indatagram.ddata.messagehd.header.size).toStdString() << std::endl;
+}
+
+void ServerApp::coutIdentity()
+{
+  std::cout << "Message from : " << host1address.toString().toStdString() << ":" << host1port 
+            << " (" << 64 << " bytes) IDENTITYi, ID > " 
+            << host1identity.fromDatagram(indatagram).getName().toStdString()
+            << std::endl;
 }
 
 void ServerApp::reportError(QString err)
 {
   std::cout << err.data() << std::endl;
 }
+
+
