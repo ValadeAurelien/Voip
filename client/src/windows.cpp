@@ -19,8 +19,6 @@ MainWindow::MainWindow(Application *_application) : QWidget(), application(_appl
   grid->addWidget(button_quit, 2, 0, 1, 1); grid->addWidget(button_connect, 2, 1, 1, 1); grid->addWidget(button_send, 2, 2, 1, 1);
 
   connect(button_quit, SIGNAL(clicked()), QApplication::instance(), SLOT(quit()));
-  connect(button_send, SIGNAL(clicked()), this, SLOT(flush()));
-  connect(le_messagein, SIGNAL(returnPressed()), this, SLOT(flush()));
   connect(button_send, SIGNAL(clicked()), application, SLOT(sendMessage()));
   connect(le_messagein, SIGNAL(returnPressed()), application, SLOT(sendMessage()));
   connect(button_connect, SIGNAL(clicked()), application, SLOT(showConnectionWindow()));
@@ -52,6 +50,7 @@ AlertWindow::AlertWindow() : QWidget()
 }
 
 void AlertWindow::setMessage(QString mess) { la_mess->setText(mess); }
+void AlertWindow::setMessageAndShow(QString mess) { la_mess->setText(mess); show(); }
 
 // ----- CONNECTION WINDOW -----
 
@@ -70,6 +69,7 @@ ConnectionWindow::ConnectionWindow(Application *_application) : QWidget(), appli
 
   connect(button_cancel, SIGNAL(clicked()), this, SLOT(close()));
   connect(le_hostaddress, SIGNAL(returnPressed()), application, SLOT(attemptConnectToHost()));
+  connect(le_port, SIGNAL(returnPressed()), application, SLOT(attemptConnectToHost()));
   connect(button_confirm, SIGNAL(clicked()), application, SLOT(attemptConnectToHost()));
 }
 

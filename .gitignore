@@ -1,7 +1,8 @@
-build/**
-src/CMakeFiles/**
-src/Makefile
-src/src_autogen/**
+**/build/**
+**/src/CMakeFiles/**
+**/src/CMakeCache.txt
+**/src/Makefile
+**/src/src*
 *.swp
 *.swo
 *.cmake

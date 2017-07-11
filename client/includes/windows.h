@@ -47,6 +47,7 @@ class AlertWindow : public QWidget
     AlertWindow();
 
     void setMessage(QString mess);
+    void setMessageAndShow(QString mess);
   private :
     QLabel *la_mess;
     QPushButton *button_ok;
