@@ -21,24 +21,25 @@ quint64 OutMessage::getNbDatagramSent() { return nbdgsent; }
 
 bool OutMessage::getNextDatagramToSend(DatagramHD &datagram)
 {
-  datagram.dheader.type = MESSAGE;
   if (nbbytessent>=size) return false;
-  if (nbdgsent + 1 < nbdg2send) 
+  if (nbdgsent < nbdg2send) 
   {
     header.nb = nbdgsent;
+    header.nbtot = nbdg2send;
     header.size = MESSAGEDATASIZE;
     datagram.fillWithMessage(data+nbbytessent, &header, MESSAGEDATASIZE);
     nbdgsent++;
-    nbbytessent+=nbdgsent*MESSAGEDATASIZE;
+    nbbytessent+=MESSAGEDATASIZE;
     return true;
   }
   else 
   {
     header.nb = nbdgsent;
+    header.nbtot = nbdg2send;
     header.size = size-nbbytessent;
     datagram.fillWithMessage(data+nbbytessent, &header, size-nbbytessent);
     nbdgsent++;
-    nbbytessent+=nbdgsent*MESSAGEDATASIZE;
+    nbbytessent+=size-nbbytessent;
     return true;
   }
 }
@@ -49,29 +50,29 @@ bool OutMessage::getNextDatagramToSend(DatagramHD &datagram)
 
 InMessage::InMessage() : QObject() {}
 
-InMessage::InMessage(const DatagramHD& dg) :
-  QObject(), header(dg.ddata.messagehd.header), actualsum(0)
+InMessage::InMessage(const DatagramMessageHD& dgm) :
+  QObject(), header(dgm.header), actualsum(0)
 {
   partialmessages.resize(header.nbtot);
   checksum=((header.nbtot+1)*header.nbtot)/2;
-  partialmessages.at(header.nb).fromUtf8(dg.ddata.messagehd.data, header.size);
+  partialmessages.at(header.nb).fromUtf8(dgm.data, header.size);
   isComplete();
 }
 
-bool InMessage::completeWithDatagram(const DatagramHD& dg)
+bool InMessage::completeWithDatagramMessage(const DatagramMessageHD& dgm)
 {
-  DatagramMessageHeader _header = dg.ddata.messagehd.header;
+  DatagramMessageHeader _header = dgm.header;
   if (_header.id != header.id) return false;
   if (partialmessages.at(_header.nb).isNull()) return true;
-  partialmessages.at(_header.nb).fromUtf8(dg.ddata.messagehd.data, _header.size);
-  actualsum+=header.nb;
+  partialmessages.at(_header.nb).fromUtf8(dgm.data, _header.size);
+  actualsum+=_header.nb;
   isComplete();
   return true;
 }
 
-bool InMessage::isSameMessage(const DatagramHD& dg)
+bool InMessage::isSameMessage(const DatagramMessageHD& dgm)
 {
-  if (dg.ddata.messagehd.header.id == header.id)
+  if (dgm.header.id == header.id)
     return true;
   return false;
 }

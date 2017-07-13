@@ -9,17 +9,17 @@ class OutMessage
   public : 
     OutMessage();
     void setDataIn(const char * _data, quint64 _size);
-    bool getNextDatagramToSend(DatagramHD& datagram);
+    bool getNextDatagramToSend(DatagramHD& dgm);
     quint64 getNbDatagramToSend();
     quint64 getNbDatagramSent();
    
   private :
-    const char *data;
     quint64 size,
             nbdgsent,
             nbdg2send,
             nbbytessent;
     DatagramMessageHeader header;
+    const char *data;
 };
 
 class InMessage : public QObject
@@ -27,11 +27,11 @@ class InMessage : public QObject
   Q_OBJECT
   public :
     InMessage();
-    InMessage(const DatagramHD& dg);
-    bool completeWithDatagram(const DatagramHD& dg);
-    bool isSameMessage(const DatagramHD& dg);
+    InMessage(const DatagramMessageHD& dgm);
+    bool completeWithDatagramMessage(const DatagramMessageHD& dgm);
+    bool isSameMessage(const DatagramMessageHD& dgm);
     bool isComplete();
-    inline const QString& getString() { return message; }
+    inline const QString& getMessage() { return message; }
 
   signals :
     void completed();

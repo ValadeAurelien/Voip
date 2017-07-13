@@ -13,7 +13,12 @@ struct DatagramHeader
 
 
 // ----- SPECIFIC HEADERS  -----
-struct DatagramIdentityHeader{};
+enum About {SERVER=0, SELF=1, PEER=2};
+struct DatagramIdentityHeader
+{
+  About about;
+};
+
 struct DatagramMessageHeader
 {
   unsigned id, nbtot,
@@ -59,6 +64,11 @@ struct DatagramHD
     if (mh) memcpy(&(ddata.messagehd.header), mh, sizeof(DatagramMessageHeader));
     if (data) memcpy(&(ddata.messagehd.data), data, size);
   }
+
+  const DatagramMessageHD& getMessageHD() const { return ddata.messagehd; }
+  const DatagramIdentityHD& getIdentityHD() const { return ddata.identityhd; }
+//  DatagramMessageHD getMessageHD() const { return ddata.messagehd; }
+//  DatagramIdentityHD getIdentityHD() const { return ddata.identityhd; }
 
   DatagramHeader dheader;
   DatagramData ddata;

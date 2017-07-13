@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QString>
 #include <QLineEdit>
+#include <QTextEdit>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QUdpSocket>
@@ -23,7 +24,12 @@ class MainWindow : public QWidget
   private slots:
     bool flush();
     void updateLaHostInformation();
+    void updateLaPeerInformation();
+    void showNewMessage();
+    void isReturnPressed();
     
+  signals:
+    void returnPressed();
   private : 
     Application *application;
 
@@ -31,8 +37,10 @@ class MainWindow : public QWidget
                 *button_send,
                 *button_connect;
     QLabel * la_hostinformation,
+           * la_peerinformation,
            * la_entermessage;
-    QLineEdit *le_messagein;
+    QTextEdit *te_editmessage,
+              *te_messages;
     QGridLayout *grid;
 };
 

@@ -8,33 +8,62 @@ MainWindow::MainWindow(Application *_application) : QWidget(), application(_appl
 {
   setWindowTitle("New Message");
   la_hostinformation = new QLabel("Host Address : None\nState : Unknown");
+  la_peerinformation = new QLabel("Peer Address : None\nState : Unknown");
   la_entermessage = new QLabel("Enter message : ");
-  le_messagein = new QLineEdit;
+  te_editmessage = new QTextEdit;
+  te_messages = new QTextEdit;
+  te_messages->setReadOnly(true);
+  te_messages->setMinimumSize(0, 50);
+
   button_quit = new QPushButton("Quit");
   button_connect = new QPushButton("Connect");
   button_send = new QPushButton("Send");
   grid = new QGridLayout(this);
-  grid->addWidget(la_hostinformation, 0, 0, 1, 3);
-  grid->addWidget(la_entermessage, 1, 0, 1, 1); grid->addWidget(le_messagein, 1, 1, 1, 2);
-  grid->addWidget(button_quit, 2, 0, 1, 1); grid->addWidget(button_connect, 2, 1, 1, 1); grid->addWidget(button_send, 2, 2, 1, 1);
+  grid->addWidget(la_hostinformation, 0, 0, 1, 1); grid->addWidget(la_peerinformation, 0, 1, 1, 2);
+  grid->addWidget(te_messages, 1, 0, 1, 3);
+  grid->addWidget(la_entermessage, 2, 0, 1, 1); grid->addWidget(te_editmessage, 2, 1, 1, 2);
+  grid->addWidget(button_quit, 3, 0, 1, 1); grid->addWidget(button_connect, 3, 1, 1, 1); grid->addWidget(button_send, 3, 2, 1, 1);
 
   connect(button_quit, SIGNAL(clicked()), QApplication::instance(), SLOT(quit()));
-  connect(button_send, SIGNAL(clicked()), application, SLOT(sendMessage()));
-  connect(le_messagein, SIGNAL(returnPressed()), application, SLOT(sendMessage()));
+  connect(button_send, SIGNAL(clicked()), application, SLOT(sendMessageToPeer()));
+  connect(te_editmessage, SIGNAL(textChanged()), this, SLOT(isReturnPressed()));
+  connect(this, SIGNAL(returnPressed()), application, SLOT(sendMessageToPeer()));
   connect(button_connect, SIGNAL(clicked()), application, SLOT(showConnectionWindow()));
 }
 
 void MainWindow::updateLaHostInformation() 
 { 
-  la_hostinformation->setText("Host Address : " + application->get_hostaddress().toString() + " (port : " + QString("%1").arg(application->get_port()) + ") \n"
-                           + "State : " + application->get_socketstatename()); 
+  la_hostinformation->setText("Host Address : " + application->getHostAddress().toString() + " (port : " + QString("%1").arg(application->getHostPort()) + ") \n"
+                           + "State : " + application->getHostSocketStateName()); 
+}
+
+void MainWindow::updateLaPeerInformation() 
+{ 
+  la_peerinformation->setText("Peer Address : " + application->getPeerAddress().toString() + " (port : " + QString("%1").arg(application->getPeerPort()) + ") \n"
+                           + "State : " + application->getPeerSocketStateName()); 
 }
 
 bool MainWindow::flush()
 {
-  le_messagein->clear();
+  te_messages->append("\nsent: " + te_editmessage->toPlainText());
+  te_editmessage->clear();
+}
+//
+void MainWindow::showNewMessage()
+{
+  te_messages->append("\nreceived : " + application->getNewMessage());
 }
 
+void MainWindow::isReturnPressed()
+{
+  if (te_editmessage->toPlainText().isEmpty()) return;
+  if (te_editmessage->toPlainText().endsWith(QString("\n")))
+  {
+    const QString& tmp = te_editmessage->toPlainText();
+    te_editmessage->setPlainText(tmp.left(tmp.size()-1));
+    emit returnPressed();
+  }
+}
 
 // ----- ALERT WINDOW -----
 

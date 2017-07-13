@@ -17,26 +17,24 @@ class ServerApp : public QObject
     void treatInDatagram();
 
   private :
-    void coutMessage();
+    void newIncomingIdentity();
+    void completeAndAnswerIdentity(Identity& id);
     void coutIdentity();
     void reportError(QString err);
 
-    QHostAddress host1address,
-                 host2address;
-    quint16 host1port,
-            host2port;
+    QHostAddress senderaddress;
+    quint16 senderport;
     Identity host1identity,
              host2identity;
-    quint64 host1dginsize,
-            host2dginsize;
-    QByteArray ba_host1messagein,
-               ba_host2messagein;
-
+    bool hashost1 = false,
+         hashost2 = false;
+ 
     static const quint16 port = 54321;
     QUdpSocket udpsocket;
 
     SocketErrorName socketerrorname;
-    DatagramHD indatagram;
+    DatagramHD indatagram, 
+               outdatagram;
 };
 
 
