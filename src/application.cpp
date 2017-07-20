@@ -6,7 +6,7 @@
 Application::Application(const Identity& _id) : QObject(), mainwindow(this), connectionwindow(this), cryptowindow(this), selfidentity(_id)
 {
   socket.bind(QHostAddress::LocalHost, 54322);
-  selfidentity.setAddress(QHostAddress::LocalHost);
+  selfidentity.setAddress(socket.localAddress());
   selfidentity.setPort(socket.localPort());
   mainwindow.updateLaSelfInformation();
 
@@ -163,6 +163,10 @@ void Application::reportError(QString err)
 bool Application::sendOutDatagramToIdentity(const Identity& dest) 
 {
   outdatagram.dheader.who = CLIENT;
+
+//  socket.connectToHost(dest.getAddress(), dest.getPort());
+//  socket.waitForConnected(10000);
+//  int nbbytes = socket.write((char*) &outdatagram, DATAGRAMSIZE);
   int nbbytes = socket.writeDatagram((char*) &outdatagram, DATAGRAMSIZE, dest.getAddress(), dest.getPort());
   if (nbbytes < DATAGRAMSIZE || nbbytes == -1)
   {

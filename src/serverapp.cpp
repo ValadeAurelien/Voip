@@ -9,10 +9,10 @@
 ServerApp::ServerApp() : QObject()
 {
   selfidentity.setName("Serveur");
-  selfidentity.setAddress(QHostAddress::LocalHost);
-  selfidentity.setPort(port);
-
   socket.bind(QHostAddress::LocalHost, port);
+  selfidentity.setAddress(socket.localAddress());
+  selfidentity.setPort(socket.localPort());
+
   connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(bindingFailed(QAbstractSocket::SocketError)));
   connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
 
