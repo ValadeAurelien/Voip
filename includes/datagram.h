@@ -5,15 +5,17 @@
 
 // ----- GENERAL HEADER -----
 enum Type {IDENTITY=0, MESSAGE=1};
+enum Who {SERVER=0, CLIENT=1};
 
 struct DatagramHeader
 {
   Type type;
+  Who who;
 };
 
-
 // ----- SPECIFIC HEADERS  -----
-enum About {SERVER=0, SELF=1, PEER=2};
+enum About {HOST=0, SELF=1, PEER=2};
+
 struct DatagramIdentityHeader
 {
   About about;

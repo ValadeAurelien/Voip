@@ -24,6 +24,7 @@ class MainWindow : public QWidget
   private slots:
     bool flush();
     void updateLaHostInformation();
+    void updateLaSelfInformation();
     void updateLaPeerInformation();
     void showNewMessage();
     void isReturnPressed();
@@ -37,6 +38,7 @@ class MainWindow : public QWidget
                 *button_send,
                 *button_connect;
     QLabel * la_hostinformation,
+           * la_selfinformation,
            * la_peerinformation,
            * la_entermessage;
     QTextEdit *te_editmessage,
@@ -59,6 +61,23 @@ class AlertWindow : public QWidget
   private :
     QLabel *la_mess;
     QPushButton *button_ok;
+    QVBoxLayout *vbox;
+};
+
+
+// ----- WAIT WINDOW -----
+
+class WaitWindow : public QWidget
+{
+  Q_OBJECT
+  friend class Application;
+  public : 
+    WaitWindow();
+
+    void setMessage(QString mess);
+    void setMessageAndShow(QString mess);
+  private :
+    QLabel *la_mess;
     QVBoxLayout *vbox;
 };
 

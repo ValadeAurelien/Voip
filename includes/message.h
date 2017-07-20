@@ -29,9 +29,9 @@ class InMessage : public QObject
     InMessage();
     InMessage(const DatagramMessageHD& dgm);
     bool completeWithDatagramMessage(const DatagramMessageHD& dgm);
-    bool isSameMessage(const DatagramMessageHD& dgm);
+    bool isSameMessage(const DatagramMessageHD& dgm) const;
     bool isComplete();
-    inline const QString& getMessage() { return message; }
+    inline const QString& getMessage() const { return message; }
 
   signals :
     void completed();

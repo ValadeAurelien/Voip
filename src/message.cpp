@@ -19,8 +19,9 @@ void OutMessage::setDataIn(const char *_data, quint64 _size)
 quint64 OutMessage::getNbDatagramToSend() { return nbdg2send; }
 quint64 OutMessage::getNbDatagramSent() { return nbdgsent; }
 
-bool OutMessage::getNextDatagramToSend(DatagramHD &datagram)
+bool OutMessage::getNextDatagramToSend(DatagramHD &datagram) 
 {
+  datagram.dheader.type = MESSAGE;
   if (nbbytessent>=size) return false;
   if (nbdgsent < nbdg2send) 
   {
@@ -70,7 +71,7 @@ bool InMessage::completeWithDatagramMessage(const DatagramMessageHD& dgm)
   return true;
 }
 
-bool InMessage::isSameMessage(const DatagramMessageHD& dgm)
+bool InMessage::isSameMessage(const DatagramMessageHD& dgm) const
 {
   if (dgm.header.id == header.id)
     return true;

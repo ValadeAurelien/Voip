@@ -7,8 +7,9 @@
 MainWindow::MainWindow(Application *_application) : QWidget(), application(_application)
 {
   setWindowTitle("New Message");
-  la_hostinformation = new QLabel("Host Address : None\nState : Unknown");
-  la_peerinformation = new QLabel("Peer Address : None\nState : Unknown");
+  la_hostinformation = new QLabel("Host : None\n(0.0.0.0:00000)");
+  la_selfinformation = new QLabel("Self : None\n(0.0.0.0:00000)");
+  la_peerinformation = new QLabel("Peer : None\n(0.0.0.0:00000)");
   la_entermessage = new QLabel("Enter message : ");
   te_editmessage = new QTextEdit;
   te_messages = new QTextEdit;
@@ -19,7 +20,7 @@ MainWindow::MainWindow(Application *_application) : QWidget(), application(_appl
   button_connect = new QPushButton("Connect");
   button_send = new QPushButton("Send");
   grid = new QGridLayout(this);
-  grid->addWidget(la_hostinformation, 0, 0, 1, 1); grid->addWidget(la_peerinformation, 0, 1, 1, 2);
+  grid->addWidget(la_hostinformation, 0, 0, 1, 1); grid->addWidget(la_peerinformation, 0, 1, 1, 1); grid->addWidget(la_selfinformation, 0, 3, 1, 1);
   grid->addWidget(te_messages, 1, 0, 1, 3);
   grid->addWidget(la_entermessage, 2, 0, 1, 1); grid->addWidget(te_editmessage, 2, 1, 1, 2);
   grid->addWidget(button_quit, 3, 0, 1, 1); grid->addWidget(button_connect, 3, 1, 1, 1); grid->addWidget(button_send, 3, 2, 1, 1);
@@ -33,14 +34,20 @@ MainWindow::MainWindow(Application *_application) : QWidget(), application(_appl
 
 void MainWindow::updateLaHostInformation() 
 { 
-  la_hostinformation->setText("Host Address : " + application->getHostAddress().toString() + " (port : " + QString("%1").arg(application->getHostPort()) + ") \n"
-                           + "State : " + application->getHostSocketStateName()); 
+  const Identity& id = application->getIdentityHost(); 
+  la_hostinformation->setText("Host : " + id.getName() + "\n(" + id.getAddress().toString() + ":" + QString("%1").arg(id.getPort()) + ") "); 
+}
+
+void MainWindow::updateLaSelfInformation() 
+{ 
+  const Identity& id = application->getIdentitySelf(); 
+  la_selfinformation->setText("Self : " + id.getName() + "\n(" + id.getAddress().toString() + ":" + QString("%1").arg(id.getPort()) + ") "); 
 }
 
 void MainWindow::updateLaPeerInformation() 
 { 
-  la_peerinformation->setText("Peer Address : " + application->getPeerAddress().toString() + " (port : " + QString("%1").arg(application->getPeerPort()) + ") \n"
-                           + "State : " + application->getPeerSocketStateName()); 
+  const Identity& id = application->getIdentityPeer(); 
+  la_peerinformation->setText("Peer : " + id.getName() + "\n(" + id.getAddress().toString() + ":" + QString("%1").arg(id.getPort()) + ") "); 
 }
 
 bool MainWindow::flush()
@@ -80,6 +87,19 @@ AlertWindow::AlertWindow() : QWidget()
 
 void AlertWindow::setMessage(QString mess) { la_mess->setText(mess); }
 void AlertWindow::setMessageAndShow(QString mess) { la_mess->setText(mess); show(); }
+
+// ----- WAIT WINDOW -----
+
+WaitWindow::WaitWindow() : QWidget()
+{
+  setWindowTitle("Please Wait !");
+  la_mess = new QLabel();
+  vbox = new QVBoxLayout(this);
+  vbox->addWidget(la_mess);
+}
+
+void WaitWindow::setMessage(QString mess) { la_mess->setText(mess); }
+void WaitWindow::setMessageAndShow(QString mess) { la_mess->setText(mess); show(); }
 
 // ----- CONNECTION WINDOW -----
 

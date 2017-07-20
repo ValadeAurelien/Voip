@@ -9,70 +9,80 @@
 #include "identity.h"
 #include "datagram.h"
 #include "message.h"
-#define MAXSIZEMESSSAGEIN 262144
 
 class Application : public QObject
 {
   Q_OBJECT
   public : 
-    Application();
+    Application(const Identity& _id);
   public slots:
     void attemptConnectToHost();
     void attemptConnectToPeer();
     void connectionFailed(QAbstractSocket::SocketError SErr);
 
     void sendMessageToPeer();
-    void sendIdentityToHost();
+    void sendSelfIdentityToIdentity(const Identity& id) ;
     
     inline void showMainWindow() { mainwindow.show(); }
     inline void showConnectionWindow() { connectionwindow.show(); }
     inline void showCryptoWindow() { cryptowindow.show(); }
 
-    inline const QHostAddress& getSelfAddress() { return selfaddress; }
-    inline const quint16& getSelfPort() { return selfport; }
-    inline const QHostAddress& getHostAddress() { return hostaddress; }
-    inline const quint16& getHostPort() { return hostport; }
-    inline const QHostAddress& getPeerAddress() { return peeraddress; }
-    inline const quint16& getPeerPort() { return peerport; }
-    inline const QString& getNewMessage() { return inmessage.getMessage(); }
-    inline const char* getHostSocketStateName() { return socketstatename(hostsocket.state()); }
-    inline const char* getPeerSocketStateName() { return socketstatename(peersocket.state()); }
+    inline const Identity& getIdentityHost() const { return hostidentity; }
+    inline const Identity& getIdentitySelf() const { return selfidentity; }
+    inline const Identity& getIdentityPeer() const { return peeridentity; }
+    inline const QString& getNewMessage() const { return inmessage.getMessage(); }
 
   private slots : 
     void treatInDatagram();
 
+    void confirmAndUpdateHostIdentity();
+    void confirmAndUpdateSelfIdentity();
+    void confirmAndUpdatePeerIdentity();
+
   signals :
     void messageSent();
+    void waitingForConnectionToHost();
+    void waitingForConnectionToPeer();
+
+    void hostAnsweredHostIdentity();
+    void hostAnsweredSelfIdentity();
+    void hostAnsweredPeerIdentity();
+    void peerAnsweredPeerIdentity();
+
+    void hostIdentityConfirmed();
+    void selfIdentityConfirmed();
+    void peerIdentityConfirmed();
 
   private :
     void reportError(QString err);
 
-    bool sendOutDatagram(QUdpSocket& socket);
+    bool sendOutDatagramToIdentity(const Identity& id);
     bool sendOutDatagramToHost();
     bool sendOutDatagramToPeer();
-
-    void setHostIdentity();
-    void updateIdentity();
-    void setPeerIdentity();
 
     MainWindow mainwindow;
     ConnectionWindow connectionwindow;
     CryptoWindow cryptowindow;
     AlertWindow alertwindow;
+    WaitWindow waitwindow;
 
     OutMessage outmessage;
     InMessage inmessage;
 
     static const size_t datagramsize = DATAGRAMSIZE;
-    QUdpSocket hostsocket,
-               peersocket;
+//    QUdpSocket hostsocket,
+//               peersocket;
+//
+//    QHostAddress selfaddress,
+//                 hostaddress,
+//                 peeraddress;
+//    quint16 selfport,
+//            hostport,
+//            peerport;
+    QUdpSocket socket;
+    QHostAddress senderaddress;
+    quint16 senderport;
 
-    QHostAddress selfaddress,
-                 hostaddress,
-                 peeraddress;
-    quint16 selfport,
-            hostport,
-            peerport;
     Identity selfidentity,
              hostidentity,
              peeridentity;

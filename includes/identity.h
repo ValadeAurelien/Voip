@@ -5,24 +5,35 @@
 #include <QHostAddress>
 #include <QWidget>
 #include "datagram.h"
+#include <QString>
+#include <QHostAddress>
 
-struct Identity
+#define MAXNAMESIZE 64 
+
+struct IdentityData
 {
-  const Identity& fromDatagram(const DatagramIdentityHD &dgi)
-  {
-    memcpy(name, dgi.data, 64);
-    memcpy((char*) &address, dgi.data+64, 4);
-    memcpy((char*) &port, dgi.data+68, 2);
-    return *this;
-  }
-  inline void setName(const QString _name) 
-  { 
-    memcpy(name, _name.constData(), ( 64 < _name.size() ? 64 : _name.size() ) ); 
-  } 
-  inline QString getName() const { return QString(name); }
-  char name [64];
+  char namesize;
+  char name [MAXNAMESIZE];
   quint32 address;
   quint16 port;
+};
+
+class Identity
+{
+  public : 
+    const Identity& fromDatagramIdentity(const DatagramIdentityHD &dgi);
+    void setName(const QString& _name);
+    void setAddress(const QHostAddress& _ha);
+    void setPort(quint16 _p);
+    bool getNextDatagramToSend(DatagramHD& datagram, const DatagramIdentityHeader& idh) const;
+    
+    bool isNull() const;
+    QString getName() const;
+    QHostAddress getAddress() const;
+    quint16 getPort() const;
+
+  private : 
+    IdentityData data;
 };
 
 #endif

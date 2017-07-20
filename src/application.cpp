@@ -1,22 +1,32 @@
 #include "application.h"
 #include "windows.h"
 #include "datagram.h"
-#include <cassert>
 #include <iostream>
 
-Application::Application() : QObject(), mainwindow(this), connectionwindow(this), cryptowindow(this)
+Application::Application(const Identity& _id) : QObject(), mainwindow(this), connectionwindow(this), cryptowindow(this), selfidentity(_id)
 {
-  selfidentity.setName("Aurélien");
+  socket.bind(QHostAddress::LocalHost, 54322);
+  selfidentity.setAddress(QHostAddress::LocalHost);
+  selfidentity.setPort(socket.localPort());
+  mainwindow.updateLaSelfInformation();
 
-  connect(&hostsocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
+  connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
+  connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
 
-  connect(&hostsocket, SIGNAL(connected()), &mainwindow, SLOT(updateLaHostInformation()));
-  connect(&hostsocket, SIGNAL(connected()), &connectionwindow, SLOT(close()));
-  connect(&hostsocket, SIGNAL(connected()), this, SLOT(sendIdentityToHost()));
-  connect(&hostsocket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
+  connect(this, SIGNAL(hostAnsweredHostIdentity()), this, SLOT(confirmAndUpdateHostIdentity()));
+  connect(this, SIGNAL(hostAnsweredSelfIdentity()), this, SLOT(confirmAndUpdateSelfIdentity()));
+  connect(this, SIGNAL(hostAnsweredPeerIdentity()), this, SLOT(confirmAndUpdatePeerIdentity()));
+  connect(this, SIGNAL(peerAnsweredPeerIdentity()), this, SLOT(confirmAndUpdatePeerIdentity()));
 
-  connect(&peersocket, SIGNAL(connected()), &mainwindow, SLOT(updateLaPeerInformation()));
-  connect(&peersocket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
+  connect(this, SIGNAL(hostIdentityConfirmed()), this, SLOT());
+  connect(this, SIGNAL(hostIdentityConfirmed()), &mainwindow, SLOT(updateLaHostInformation()));
+  connect(this, SIGNAL(hostIdentityConfirmed()), &connectionwindow, SLOT(close()));
+  connect(this, SIGNAL(hostIdentityConfirmed()), &waitwindow, SLOT(close()));
+
+  connect(this, SIGNAL(selfIdentityConfirmed()), this, SLOT());
+  connect(this, SIGNAL(selfIdentityConfirmed()), &mainwindow, SLOT(updateLaSelfInformation()));
+
+  connect(this, SIGNAL(peerIdentityConfirmed()), this, SLOT());
 
   connect(this, SIGNAL(messageSent()), &mainwindow, SLOT(flush()));
   connect(&inmessage, SIGNAL(completed()), &mainwindow, SLOT(showNewMessage()));
@@ -24,27 +34,29 @@ Application::Application() : QObject(), mainwindow(this), connectionwindow(this)
 
 void Application::attemptConnectToHost()
 { 
-  if (!hostaddress.setAddress(connectionwindow.le_hostaddress->text())) 
+  QHostAddress had (connectionwindow.le_hostaddress->text());
+  if (had.isNull())
   {
     reportError("Host Address not understood...");
     return;
   }
+  else hostidentity.setAddress(had);
   bool ok;
-  hostport = connectionwindow.le_port->text().toUInt(&ok);
+  quint16 hp = connectionwindow.le_port->text().toUInt(&ok);
   if (!ok) 
   {
     reportError("Port not understood...");
     return;
   }
-  if (hostsocket.state())
-    hostsocket.disconnectFromHost();
-  hostsocket.connectToHost(hostaddress, hostport);
-  if (!hostsocket.waitForConnected(delayconnection)) connectionFailed(hostsocket.error());
+  else hostidentity.setPort(hp);
+  sendSelfIdentityToIdentity(hostidentity);
+  waitwindow.setMessageAndShow("Connection to host, please wait..."); 
+  emit waitingForConnectionToHost();
 }
 
 void Application::attemptConnectToPeer()
 {
-
+  sendSelfIdentityToIdentity(peeridentity);
 }
 
 void Application::connectionFailed(QAbstractSocket::SocketError SErr)
@@ -54,7 +66,7 @@ void Application::connectionFailed(QAbstractSocket::SocketError SErr)
 
 void Application::sendMessageToPeer()
 {
-  if (!peersocket.state())
+  if (peeridentity.isNull())
   {
     reportError("Peer Address not or incorrectly configured...\nThe message will no be sent.");
     return;
@@ -62,58 +74,96 @@ void Application::sendMessageToPeer()
 
   outmessage.setDataIn(mainwindow.te_editmessage->toPlainText().toUtf8().constData(), mainwindow.te_editmessage->toPlainText().toUtf8().size());
   while (outmessage.getNextDatagramToSend(outdatagram))
-    if (!sendOutDatagramToHost())
+    if (!sendOutDatagramToPeer())
       return;
   emit messageSent();
 }
 
-void Application::sendIdentityToHost()
+void Application::sendSelfIdentityToIdentity(const Identity& id) 
 {
-  DatagramIdentityHeader ih; ih.about = PEER;
-  outdatagram.fillWithIdentity((char*) &selfidentity, &ih);
-  sendOutDatagramToHost();
+  DatagramIdentityHeader idh; idh.about = SELF;
+  selfidentity.getNextDatagramToSend(outdatagram, idh);
+  if (!sendOutDatagramToIdentity(id))
+    return;
 }
 
 void Application::treatInDatagram()
 {
-  hostsocket.read((char*) &indatagram, DATAGRAMSIZE);
-  switch ( indatagram.dheader.type )
+  socket.readDatagram((char*) &indatagram, DATAGRAMSIZE, &senderaddress, &senderport);
+  switch ( indatagram.dheader.who ) 
   {
-    case IDENTITY:
-      switch ( indatagram.getIdentityHD().header.about )
+    case SERVER : 
+      switch ( indatagram.dheader.type )
       {
-        case SERVER: 
-          setHostIdentity();
+        case IDENTITY:
+          switch ( indatagram.getIdentityHD().header.about )
+          {
+            case HOST : 
+              emit hostAnsweredHostIdentity();
+              break;
+            case SELF : 
+              std::cout << "coucou" << std::endl;
+              emit hostAnsweredSelfIdentity();
+              break;
+            case PEER :
+              emit hostAnsweredPeerIdentity();
+              break;
+            default :
+              reportError("Incoming datagram not understood...");
+              break;
+          }
           break;
-        case SELF:
-          updateIdentity();
-          break;
-        case PEER:
-          setPeerIdentity();
+        case MESSAGE :
+          reportError("Incoming message from a server...");
           break;
         default:
           reportError("Incoming datagram not understood...");
           break;
       }
       break;
-    case MESSAGE:
-      if (!inmessage.completeWithDatagramMessage(indatagram.getMessageHD()))
-        reportError("Missed a message...");
-      break;
-    default:
-      reportError("Incoming datagram not understood...");
-      break;
+      case CLIENT:
+        switch ( indatagram.dheader.type )
+        {
+          case IDENTITY:
+            switch ( indatagram.getIdentityHD().header.about )
+            {
+              case HOST : 
+                reportError("Peer talks about a server...");
+                break;
+              case SELF : 
+                reportError("Peer talks about me...");
+                break;
+              case PEER :
+                emit peerAnsweredPeerIdentity();
+                break;
+              default :
+                reportError("Incoming datagram not understood...");
+                break;
+            }
+            break;
+          case MESSAGE : 
+            if (!inmessage.completeWithDatagramMessage(indatagram.getMessageHD()))
+              reportError("Missed a message...");
+            break;
+          default:
+            reportError("Incoming datagram not understood...");
+            break;
+        }
+      default :
+        reportError("Incoming datagram not understood...");
+        break;
   }
 }
+
 void Application::reportError(QString err)
 {
   alertwindow.setMessageAndShow(err);
 }
 
-bool Application::sendOutDatagram(QUdpSocket& socket)
+bool Application::sendOutDatagramToIdentity(const Identity& dest) 
 {
-  assert(sizeof(DatagramHD)==DATAGRAMSIZE);
-  int nbbytes = socket.write((char*) &outdatagram, DATAGRAMSIZE);
+  outdatagram.dheader.who = CLIENT;
+  int nbbytes = socket.writeDatagram((char*) &outdatagram, DATAGRAMSIZE, dest.getAddress(), dest.getPort());
   if (nbbytes < DATAGRAMSIZE || nbbytes == -1)
   {
     reportError(QString("Error while sending a datagram : ") + socketerrorname(socket.error()));
@@ -122,10 +172,22 @@ bool Application::sendOutDatagram(QUdpSocket& socket)
   return true;
 }
 
-bool Application::sendOutDatagramToHost() { return sendOutDatagram(hostsocket); }
-bool Application::sendOutDatagramToPeer() { return sendOutDatagram(peersocket); }
+bool Application::sendOutDatagramToHost() { return sendOutDatagramToIdentity(hostidentity); }
+bool Application::sendOutDatagramToPeer() { return sendOutDatagramToIdentity(peeridentity); }
 
-void Application::setHostIdentity() { memcpy((char*) &hostidentity, indatagram.getIdentityHD().data, sizeof(Identity)); }
-void Application::updateIdentity() { memcpy((char*) &selfidentity, indatagram.getIdentityHD().data, sizeof(Identity)); }
-void Application::setPeerIdentity() { memcpy((char*) &peeridentity, indatagram.getIdentityHD().data, sizeof(Identity)); }
+void Application::confirmAndUpdateHostIdentity() 
+{ 
+  hostidentity.fromDatagramIdentity(indatagram.getIdentityHD()); 
+  emit hostIdentityConfirmed();
+}
+void Application::confirmAndUpdateSelfIdentity() 
+{ 
+  selfidentity.fromDatagramIdentity(indatagram.getIdentityHD()); 
+  emit selfIdentityConfirmed();
+}
+void Application::confirmAndUpdatePeerIdentity() 
+{ 
+  peeridentity.fromDatagramIdentity(indatagram.getIdentityHD()); 
+  emit peerIdentityConfirmed();
+}
 
