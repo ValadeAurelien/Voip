@@ -1,6 +1,13 @@
 #include "identity.h"
 #include <iostream>
 
+Identity::Identity()
+{
+  data.namesize = 0;
+  data.address = 0;
+  data.port = 0;
+}
+
 const Identity& Identity::fromDatagramIdentity(const DatagramIdentityHD &dgi)
 {
   memcpy(&data, dgi.data, sizeof(IdentityData));
@@ -39,8 +46,8 @@ bool Identity::getNextDatagramToSend(DatagramHD& datagram, const DatagramIdentit
 
 bool Identity::isNull() const
 {
-  std::cout << QString(data.name).isNull() << " " << QHostAddress(data.address).isNull() << " " << (data.port == 0) << std::endl;
-  return ((QString(data.name).isNull() || QHostAddress(data.address).isNull()) || data.port == 0);
+  std::cout << data.namesize << " " << QHostAddress(data.address).isNull() << " " << (data.port == 0) << std::endl;
+  return ((data.namesize || QHostAddress(data.address).isNull()) || data.port == 0);
 }
 
 QString Identity::getName() const { return QString().fromUtf8(data.name, (int) data.namesize); }

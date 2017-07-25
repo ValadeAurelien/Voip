@@ -9,7 +9,7 @@
 ServerApp::ServerApp() : QObject()
 {
   selfidentity.setName("Serveur");
-  socket.bind(QHostAddress("192.168.178.61"), 54321);
+  socket.bind(QHostAddress("51.15.4.10"), 54321);
   selfidentity.setAddress(socket.localAddress());
   selfidentity.setPort(socket.localPort());
 

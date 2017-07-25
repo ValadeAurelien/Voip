@@ -21,6 +21,7 @@ struct IdentityData
 class Identity
 {
   public : 
+    Identity();
     const Identity& fromDatagramIdentity(const DatagramIdentityHD &dgi);
     void setName(const QString& _name);
     void setAddress(const QHostAddress& _ha);
