@@ -16,9 +16,11 @@ class ServerApp : public QObject
     void bindingFailed(QAbstractSocket::SocketError);
     void treatInDatagram();
     void treatIncomingIdentity();
+    void punchHoles();
 
   signals :
     void receivedClientIdentity();
+    void twoHostConnected();
 
   private :
     void completeAndAnswerIdentity(Identity& id);

@@ -17,6 +17,8 @@ ServerApp::ServerApp() : QObject()
   connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
 
   connect(this, SIGNAL(receivedClientIdentity()), this, SLOT(treatIncomingIdentity()));
+
+  connect(this, SIGNAL(twoHostConnected()), this, SLOT(punchHoles()));
 }
 
 void ServerApp::treatInDatagram()
@@ -77,10 +79,19 @@ void ServerApp::treatIncomingIdentity()
   {
     client2identity.fromDatagramIdentity(indatagram.getIdentityHD());
     completeAndAnswerIdentity(client2identity);
+    emit twoHostConnected();
     return;
   }
   else 
     reportError("More than two clients connected ! ");
+}
+
+void ServerApp::punchHoles()
+{
+  DatagramIdentityHeader idh; 
+  idh.about = PEER;
+  sendIdentityToIdentity(client1identity, client2identity, idh);
+  sendIdentityToIdentity(client2identity, client1identity, idh);
 }
 
 void ServerApp::completeAndAnswerIdentity(Identity& id)
