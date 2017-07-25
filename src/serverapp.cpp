@@ -66,6 +66,7 @@ void ServerApp::bindingFailed(QAbstractSocket::SocketError serr)
 
 void ServerApp::treatIncomingIdentity()
 {
+  std::cout << client1identity.isNull() << " " << client2identity.isNull() << std::endl;
   if (client1identity.isNull())
   {
     client1identity.fromDatagramIdentity(indatagram.getIdentityHD());
