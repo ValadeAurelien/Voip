@@ -5,9 +5,7 @@
 
 Application::Application(const Identity& _id) : QObject(), mainwindow(this), connectionwindow(this), cryptowindow(this), selfidentity(_id)
 {
-  socket.bind(QHostAddress("94.223.83.109"), 54322);
-  selfidentity.setAddress(socket.localAddress());
-  selfidentity.setPort(socket.localPort());
+  socket.bind(selfidentity.getAddress(), selfidentity.getPort());
   mainwindow.updateLaSelfInformation();
 
   connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
@@ -18,15 +16,13 @@ Application::Application(const Identity& _id) : QObject(), mainwindow(this), con
   connect(this, SIGNAL(hostAnsweredPeerIdentity()), this, SLOT(confirmAndUpdatePeerIdentity()));
   connect(this, SIGNAL(peerAnsweredPeerIdentity()), this, SLOT(confirmAndUpdatePeerIdentity()));
 
-  connect(this, SIGNAL(hostIdentityConfirmed()), this, SLOT());
   connect(this, SIGNAL(hostIdentityConfirmed()), &mainwindow, SLOT(updateLaHostInformation()));
   connect(this, SIGNAL(hostIdentityConfirmed()), &connectionwindow, SLOT(close()));
   connect(this, SIGNAL(hostIdentityConfirmed()), &waitwindow, SLOT(close()));
 
-  connect(this, SIGNAL(selfIdentityConfirmed()), this, SLOT());
   connect(this, SIGNAL(selfIdentityConfirmed()), &mainwindow, SLOT(updateLaSelfInformation()));
 
-  connect(this, SIGNAL(peerIdentityConfirmed()), this, SLOT());
+  connect(this, SIGNAL(peerIdentityConfirmed()), &mainwindow, SLOT(updateLaPeerInformation()));
 
   connect(this, SIGNAL(messageSent()), &mainwindow, SLOT(flush()));
   connect(&inmessage, SIGNAL(completed()), &mainwindow, SLOT(showNewMessage()));
@@ -109,7 +105,7 @@ void Application::treatInDatagram()
               emit hostAnsweredPeerIdentity();
               break;
             default :
-              reportError("Incoming datagram not understood...");
+              reportError("Incoming datagram not understood... SERVER+IDENTITY");
               break;
           }
           break;
@@ -117,41 +113,45 @@ void Application::treatInDatagram()
           reportError("Incoming message from a server...");
           break;
         default:
-          reportError("Incoming datagram not understood...");
+          reportError("Incoming datagram not understood... SERVER+???");
           break;
       }
       break;
-      case CLIENT:
-        switch ( indatagram.dheader.type )
-        {
-          case IDENTITY:
-            switch ( indatagram.getIdentityHD().header.about )
-            {
-              case HOST : 
-                reportError("Peer talks about a server...");
-                break;
-              case SELF : 
-                reportError("Peer talks about me...");
-                break;
-              case PEER :
-                emit peerAnsweredPeerIdentity();
-                break;
-              default :
-                reportError("Incoming datagram not understood...");
-                break;
-            }
-            break;
-          case MESSAGE : 
-            if (!inmessage.completeWithDatagramMessage(indatagram.getMessageHD()))
-              reportError("Missed a message...");
-            break;
-          default:
-            reportError("Incoming datagram not understood...");
-            break;
-        }
-      default :
-        reportError("Incoming datagram not understood...");
-        break;
+    case CLIENT:
+      switch ( indatagram.dheader.type )
+      {
+        case IDENTITY:
+          switch ( indatagram.getIdentityHD().header.about )
+          {
+            case HOST : 
+              reportError("Peer talks about a server...");
+              break;
+            case SELF : 
+              reportError("Peer talks about me...");
+              break;
+            case PEER :
+              emit peerAnsweredPeerIdentity();
+              break;
+            default :
+              reportError("Incoming datagram not understood... CLIENT+IDENTITY+????");
+              break;
+          }
+          break;
+        case MESSAGE : 
+          if (!inmessage.completeWithDatagramMessage(indatagram.getMessageHD()))
+          {
+            reportError("Missed a message...");
+            inmessage.newMessageFromDatagramMessage(indatagram.getMessageHD());
+          }
+          break;
+        default:
+          reportError("Incoming datagram not understood...CLIENT+????");
+          break;
+      }
+      break;
+    default :
+      reportError("Incoming datagram not understood... ????");
+      break;
   }
 }
 
@@ -164,9 +164,6 @@ bool Application::sendOutDatagramToIdentity(const Identity& dest)
 {
   std::cout << socket.state() << " " << socketstatename(socket.state()) << std::endl;
   outdatagram.dheader.who = CLIENT;
-//  socket.connectToHost(dest.getAddress(), dest.getPort());
-//  socket.waitForConnected(10000);
-//  int nbbytes = socket.write((char*) &outdatagram, DATAGRAMSIZE);
   int nbbytes = socket.writeDatagram((char*) &outdatagram, DATAGRAMSIZE, dest.getAddress(), dest.getPort());
   if (nbbytes < DATAGRAMSIZE || nbbytes == -1)
   {

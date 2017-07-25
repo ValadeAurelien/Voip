@@ -46,8 +46,7 @@ bool Identity::getNextDatagramToSend(DatagramHD& datagram, const DatagramIdentit
 
 bool Identity::isNull() const
 {
-  std::cout << data.namesize << " " << QHostAddress(data.address).isNull() << " " << (data.port == 0) << std::endl;
-  return ((data.namesize || QHostAddress(data.address).isNull()) || data.port == 0);
+  return (((data.namesize == 0) || QHostAddress(data.address).isNull()) || data.port == 0);
 }
 
 QString Identity::getName() const { return QString().fromUtf8(data.name, (int) data.namesize); }

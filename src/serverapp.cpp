@@ -6,12 +6,10 @@
 #include <string>
 
 
-ServerApp::ServerApp() : QObject()
+ServerApp::ServerApp(const Identity& _id) : QObject(), selfidentity(_id)
 {
-  selfidentity.setName("Serveur");
-  socket.bind(QHostAddress("192.168.178.61"), 54321);
-  selfidentity.setAddress(socket.localAddress());
-  selfidentity.setPort(socket.localPort());
+  socket.bind(selfidentity.getAddress(), selfidentity.getPort());
+  std::cout << "Listening on " << selfidentity.getAddress().toString().toStdString() << ":" << selfidentity.getPort() << std::endl;
 
   connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(bindingFailed(QAbstractSocket::SocketError)));
   connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));

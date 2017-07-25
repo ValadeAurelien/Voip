@@ -25,7 +25,7 @@ bool OutMessage::getNextDatagramToSend(DatagramHD &datagram)
   if (nbbytessent>=size) return false;
   if (nbdgsent < nbdg2send) 
   {
-    header.nb = nbdgsent;
+    header.nb = nbdgsent+1;
     header.nbtot = nbdg2send;
     header.size = MESSAGEDATASIZE;
     datagram.fillWithMessage(data+nbbytessent, &header, MESSAGEDATASIZE);
@@ -35,7 +35,7 @@ bool OutMessage::getNextDatagramToSend(DatagramHD &datagram)
   }
   else 
   {
-    header.nb = nbdgsent;
+    header.nb = nbdgsent+1;
     header.nbtot = nbdg2send;
     header.size = size-nbbytessent;
     datagram.fillWithMessage(data+nbbytessent, &header, size-nbbytessent);
@@ -51,18 +51,21 @@ bool OutMessage::getNextDatagramToSend(DatagramHD &datagram)
 
 InMessage::InMessage() : QObject() {}
 
-InMessage::InMessage(const DatagramMessageHD& dgm) :
-  QObject(), header(dgm.header), actualsum(0)
+bool InMessage::newMessageFromDatagramMessage(const DatagramMessageHD& dgm)
 {
+  header = dgm.header;
+  actualsum = 0;
+  partialmessages.clear();
   partialmessages.resize(header.nbtot);
   checksum=((header.nbtot+1)*header.nbtot)/2;
-  partialmessages.at(header.nb).fromUtf8(dgm.data, header.size);
-  isComplete();
+
+  return completeWithDatagramMessage(dgm);
 }
 
 bool InMessage::completeWithDatagramMessage(const DatagramMessageHD& dgm)
 {
   DatagramMessageHeader _header = dgm.header;
+  std::cout << "partial message size :" << partialmessages.size() << std::endl;
   if (_header.id != header.id) return false;
   if (partialmessages.at(_header.nb).isNull()) return true;
   partialmessages.at(_header.nb).fromUtf8(dgm.data, _header.size);
@@ -94,6 +97,7 @@ void InMessage::buildMessage()
   message="";
   for (auto const& pm : partialmessages)
     message+=pm;
+  std::cout << "message : " << message.toStdString() << std::endl;
 }
     
 

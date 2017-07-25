@@ -27,7 +27,7 @@ class InMessage : public QObject
   Q_OBJECT
   public :
     InMessage();
-    InMessage(const DatagramMessageHD& dgm);
+    bool newMessageFromDatagramMessage(const DatagramMessageHD& dgm);
     bool completeWithDatagramMessage(const DatagramMessageHD& dgm);
     bool isSameMessage(const DatagramMessageHD& dgm) const;
     bool isComplete();

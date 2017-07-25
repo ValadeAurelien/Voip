@@ -10,7 +10,7 @@ class ServerApp : public QObject
 {
   Q_OBJECT
   public : 
-    ServerApp();
+    ServerApp(const Identity& _id);
 
   private slots :
     void bindingFailed(QAbstractSocket::SocketError);
@@ -20,7 +20,7 @@ class ServerApp : public QObject
 
   signals :
     void receivedClientIdentity();
-    void twoHostConnected();
+    void twoHostsConnected();
 
   private :
     void completeAndAnswerIdentity(Identity& id);
