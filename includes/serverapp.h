@@ -34,7 +34,6 @@ class ServerApp : public QObject
              client1identity,
              client2identity;
  
-    static const quint16 port = 54321;
     QUdpSocket socket;
 
     SocketErrorName socketerrorname;
