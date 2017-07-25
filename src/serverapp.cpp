@@ -9,7 +9,7 @@
 ServerApp::ServerApp() : QObject()
 {
   selfidentity.setName("Serveur");
-  socket.bind(QHostAddress("51.15.4.10"), 54321);
+  socket.bind(QHostAddress("192.168.178.61"), 54321);
   selfidentity.setAddress(socket.localAddress());
   selfidentity.setPort(socket.localPort());
 
@@ -18,7 +18,7 @@ ServerApp::ServerApp() : QObject()
 
   connect(this, SIGNAL(receivedClientIdentity()), this, SLOT(treatIncomingIdentity()));
 
-  connect(this, SIGNAL(twoHostConnected()), this, SLOT(punchHoles()));
+  connect(this, SIGNAL(twoHostsConnected()), this, SLOT(punchHoles()));
 }
 
 void ServerApp::treatInDatagram()
@@ -79,7 +79,7 @@ void ServerApp::treatIncomingIdentity()
   {
     client2identity.fromDatagramIdentity(indatagram.getIdentityHD());
     completeAndAnswerIdentity(client2identity);
-    emit twoHostConnected();
+    emit twoHostsConnected();
     return;
   }
   else 
@@ -88,6 +88,8 @@ void ServerApp::treatIncomingIdentity()
 
 void ServerApp::punchHoles()
 {
+  std::cout << "Punching holes between " << client1identity.getAddress().toString().toStdString() << ":" << client1identity.getPort() << " and " 
+            << client2identity.getAddress().toString().toStdString() << ":" << client2identity.getPort() << std::endl;
   DatagramIdentityHeader idh; 
   idh.about = PEER;
   sendIdentityToIdentity(client1identity, client2identity, idh);
