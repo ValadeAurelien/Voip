@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <ctime>
 #include "application.h"
 #include "windows.h"
 #include "datagram.h"
@@ -7,6 +9,7 @@ Application::Application(const Identity& _id) : QObject(), mainwindow(this), con
 {
   socket.bind(selfidentity.getAddress(), selfidentity.getPort());
   mainwindow.updateLaSelfInformation();
+  srand(time(NULL));
 
   connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
   connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
@@ -98,7 +101,6 @@ void Application::treatInDatagram()
               emit hostAnsweredHostIdentity();
               break;
             case SELF : 
-              std::cout << "coucou" << std::endl;
               emit hostAnsweredSelfIdentity();
               break;
             case PEER :
@@ -138,9 +140,14 @@ void Application::treatInDatagram()
           }
           break;
         case MESSAGE : 
-          if (!inmessage.completeWithDatagramMessage(indatagram.getMessageHD()))
+          if (inmessage.isSameMessage(indatagram.getMessageHD()))
           {
-            reportError("Missed a message...");
+            std::cout << "same" << std::endl;
+            inmessage.completeWithDatagramMessage(indatagram.getMessageHD());
+          }
+          else
+          {
+            std::cout << "new" << std::endl;
             inmessage.newMessageFromDatagramMessage(indatagram.getMessageHD());
           }
           break;

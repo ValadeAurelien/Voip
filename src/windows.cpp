@@ -19,11 +19,18 @@ MainWindow::MainWindow(Application *_application) : QWidget(), application(_appl
   button_quit = new QPushButton("Quit");
   button_connect = new QPushButton("Connect");
   button_send = new QPushButton("Send");
-  grid = new QGridLayout(this);
-  grid->addWidget(la_hostinformation, 0, 0, 1, 1); grid->addWidget(la_peerinformation, 0, 1, 1, 1); grid->addWidget(la_selfinformation, 0, 3, 1, 1);
-  grid->addWidget(te_messages, 1, 0, 1, 3);
-  grid->addWidget(la_entermessage, 2, 0, 1, 1); grid->addWidget(te_editmessage, 2, 1, 1, 2);
-  grid->addWidget(button_quit, 3, 0, 1, 1); grid->addWidget(button_connect, 3, 1, 1, 1); grid->addWidget(button_send, 3, 2, 1, 1);
+  hbox_infos = new QHBoxLayout;
+  hbox_infos->addWidget(la_hostinformation); hbox_infos->addWidget(la_peerinformation); hbox_infos->addWidget(la_selfinformation);
+  hbox_editmessage = new QHBoxLayout;
+  hbox_editmessage->addWidget(la_entermessage); hbox_editmessage->addWidget(te_editmessage);
+  hbox_buttons = new QHBoxLayout;
+  hbox_buttons->addWidget(button_quit); hbox_buttons->addWidget(button_connect); hbox_buttons->addWidget(button_send);
+
+  vbox = new QVBoxLayout (this);
+  vbox->addLayout(hbox_infos);
+  vbox->addWidget(te_messages);
+  vbox->addLayout(hbox_editmessage);
+  vbox->addLayout(hbox_buttons);
 
   connect(button_quit, SIGNAL(clicked()), QApplication::instance(), SLOT(quit()));
   connect(button_send, SIGNAL(clicked()), application, SLOT(sendMessageToPeer()));

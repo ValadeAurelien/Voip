@@ -1,8 +1,12 @@
+#ifndef MESSAGE_H
+#define MESSAGE_H
 #include <QObject>
 #include <QWidget>
 #include <QString>
 #include <QVector>
+#include <stdlib.h>
 #include "datagram.h"
+
 
 class OutMessage
 {
@@ -45,3 +49,6 @@ class InMessage : public QObject
     quint64 checksum,
             actualsum;
 };
+
+
+#endif

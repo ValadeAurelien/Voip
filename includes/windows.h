@@ -37,13 +37,16 @@ class MainWindow : public QWidget
     QPushButton *button_quit,
                 *button_send,
                 *button_connect;
-    QLabel * la_hostinformation,
-           * la_selfinformation,
-           * la_peerinformation,
-           * la_entermessage;
+    QLabel *la_hostinformation,
+           *la_selfinformation,
+           *la_peerinformation,
+           *la_entermessage;
     QTextEdit *te_editmessage,
               *te_messages;
-    QGridLayout *grid;
+    QVBoxLayout *vbox;
+    QHBoxLayout *hbox_infos,
+                *hbox_editmessage,
+                *hbox_buttons;
 };
 
 
