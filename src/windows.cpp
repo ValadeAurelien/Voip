@@ -4,7 +4,7 @@
 
 // ----- MAIN WINDOW -----
 
-MainWindow::MainWindow(Application *_application) : QWidget(), application(_application)
+MainWindow::MainWindow(Application *_application) : QWidget(NULL, Qt::Dialog), application(_application)
 {
   setWindowTitle("New Message");
   la_hostinformation = new QLabel("Host : None\n(0.0.0.0:00000)");
@@ -81,7 +81,7 @@ void MainWindow::isReturnPressed()
 
 // ----- ALERT WINDOW -----
 
-AlertWindow::AlertWindow() : QWidget()
+AlertWindow::AlertWindow() : QWidget(NULL, Qt::Dialog)
 {
   setWindowTitle("Ouch !");
   la_mess = new QLabel;
@@ -97,7 +97,7 @@ void AlertWindow::setMessageAndShow(QString mess) { la_mess->setText(mess); show
 
 // ----- WAIT WINDOW -----
 
-WaitWindow::WaitWindow() : QWidget()
+WaitWindow::WaitWindow() : QWidget(NULL, Qt::Dialog)
 {
   setWindowTitle("Please Wait !");
   la_mess = new QLabel();
@@ -110,7 +110,7 @@ void WaitWindow::setMessageAndShow(QString mess) { la_mess->setText(mess); show(
 
 // ----- CONNECTION WINDOW -----
 
-ConnectionWindow::ConnectionWindow(Application *_application) : QWidget(), application (_application) 
+ConnectionWindow::ConnectionWindow(Application *_application) : QWidget(NULL, Qt::Dialog), application (_application) 
 {
   setWindowTitle("Manage Connection");
   la_askforhostaddress = new QLabel("Enter host address (IPv4, IPv6, URL) and port : ");
@@ -132,7 +132,7 @@ ConnectionWindow::ConnectionWindow(Application *_application) : QWidget(), appli
 
 // ----- CRYPTO WINDOW -----
 
-CryptoWindow::CryptoWindow(Application *_application) : QWidget(), application (_application)
+CryptoWindow::CryptoWindow(Application *_application) : QWidget(NULL, Qt::Dialog), application (_application)
 {
 
 }

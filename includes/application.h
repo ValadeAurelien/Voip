@@ -35,6 +35,9 @@ class Application : public QObject
   private slots : 
     void treatInDatagram();
 
+//    void timerConnectionToHost();
+//    void timerConnectionToPeer();
+
     void confirmAndUpdateHostIdentity();
     void confirmAndUpdateSelfIdentity();
     void confirmAndUpdatePeerIdentity();
@@ -55,6 +58,7 @@ class Application : public QObject
 
   private :
     void reportError(QString err);
+    void logMessage(QString mess);
 
     bool sendOutDatagramToIdentity(const Identity& id);
     bool sendOutDatagramToHost();

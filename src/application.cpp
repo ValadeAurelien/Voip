@@ -13,6 +13,8 @@ Application::Application(const Identity& _id) : QObject(), mainwindow(this), con
 
   connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
   connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
+  connect(this, SIGNAL(waitingForConnectionToHost), this, SLOT(timerConnectionToHost()));
+  connect(this, SIGNAL(waitingForConnectionToPeer), this, SLOT(timerConnectionToPeer()));
 
   connect(this, SIGNAL(hostAnsweredHostIdentity()), this, SLOT(confirmAndUpdateHostIdentity()));
   connect(this, SIGNAL(hostAnsweredSelfIdentity()), this, SLOT(confirmAndUpdateSelfIdentity()));
@@ -141,15 +143,9 @@ void Application::treatInDatagram()
           break;
         case MESSAGE : 
           if (inmessage.isSameMessage(indatagram.getMessageHD()))
-          {
-            std::cout << "same" << std::endl;
             inmessage.completeWithDatagramMessage(indatagram.getMessageHD());
-          }
           else
-          {
-            std::cout << "new" << std::endl;
             inmessage.newMessageFromDatagramMessage(indatagram.getMessageHD());
-          }
           break;
         default:
           reportError("Incoming datagram not understood...CLIENT+????");
@@ -162,9 +158,43 @@ void Application::treatInDatagram()
   }
 }
 
+
+//void timerConnectionToHost()
+//{
+//  QTime dieTime= QTime::currentTime().addSecs(delayhostanswer);
+//  while (QTime::currentTime() < dieTime)
+//  {
+//    if (socket.state() == 4)
+//      return;
+//    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+//  }
+//  connectionwindow.close();
+//  reportError("Host took too long to answer...");
+//}
+
+//void timerConnectionToHost()
+//{
+//  QTime dieTime= QTime::currentTime().addSecs(delayhostanswer);
+//  while (QTime::currentTime() < dieTime)
+//  {
+//    if (socket.state() == 4)
+//      return;
+//    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+//  }
+//  connectionwindow.close();
+//  reportError("Host took too long to answer...");
+//}
+//
+//void timerConnectionToPeer();
+
 void Application::reportError(QString err)
 {
   alertwindow.setMessageAndShow(err);
+}
+
+void Application::logMessage(QString mess)
+{
+  std::cout << mess.toStdString() << std::endl;
 }
 
 bool Application::sendOutDatagramToIdentity(const Identity& dest) 

@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.8.2)
 
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
 project(mytest)
 
 # Find the QtWidgets library
@@ -12,7 +14,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 #set(CMAKE_AUTOMOC ON)
 
-set(CXX_FLAGS "-std=c++11 -Wall")
+set (CMAKE_CXX_STANDARD 11)
+set(CXX_FLAGS "-Wall")
 
 # Includes directory
 set(INC_DIR ${PROJECT_SOURCE_DIR}/includes)
