@@ -1,4 +1,3 @@
-
 qt5_wrap_cpp(serverapp_SRC ${INC_DIR}/serverapp.h)
 qt5_wrap_cpp(application_SRC ${INC_DIR}/application.h)
 qt5_wrap_cpp(message_SRC ${INC_DIR}/message.h)
@@ -11,4 +10,3 @@ target_link_libraries(client Qt5::Widgets Qt5::Network)
 
 # Output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build)
-

@@ -35,8 +35,8 @@ class Application : public QObject
   private slots : 
     void treatInDatagram();
 
-//    void timerConnectionToHost();
-//    void timerConnectionToPeer();
+    void timerConnectionToHost();
+    void timerConnectionToPeer();
 
     void confirmAndUpdateHostIdentity();
     void confirmAndUpdateSelfIdentity();
@@ -74,15 +74,7 @@ class Application : public QObject
     InMessage inmessage;
 
     static const size_t datagramsize = DATAGRAMSIZE;
-//    QUdpSocket hostsocket,
-//               peersocket;
-//
-//    QHostAddress selfaddress,
-//                 hostaddress,
-//                 peeraddress;
-//    quint16 selfport,
-//            hostport,
-//            peerport;
+
     QUdpSocket socket;
     QHostAddress senderaddress;
     quint16 senderport;
@@ -97,7 +89,11 @@ class Application : public QObject
     DatagramHD outdatagram, 
                indatagram;
 
-    static const unsigned delayconnection = 3000;
+    static const unsigned delayhostanswer = 10,
+                          delaypeeranswer = 10;
+    bool hostidentityhasbeenconfirmed, 
+         selfidentityhasbeenconfirmed,
+         peeridentityhasbeenconfirmed;
 };
 
 #endif

@@ -1,20 +1,18 @@
-#include <stdlib.h>
-#include <ctime>
+#include <QTime>
+#include <iostream>
 #include "application.h"
 #include "windows.h"
 #include "datagram.h"
-#include <iostream>
 
 Application::Application(const Identity& _id) : QObject(), mainwindow(this), connectionwindow(this), cryptowindow(this), selfidentity(_id)
 {
   socket.bind(selfidentity.getAddress(), selfidentity.getPort());
   mainwindow.updateLaSelfInformation();
-  srand(time(NULL));
 
   connect(&socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionFailed(QAbstractSocket::SocketError)));
   connect(&socket, SIGNAL(readyRead()), this, SLOT(treatInDatagram()));
-  connect(this, SIGNAL(waitingForConnectionToHost), this, SLOT(timerConnectionToHost()));
-  connect(this, SIGNAL(waitingForConnectionToPeer), this, SLOT(timerConnectionToPeer()));
+  connect(this, SIGNAL(waitingForConnectionToHost()), this, SLOT(timerConnectionToHost()));
+  connect(this, SIGNAL(waitingForConnectionToPeer()), this, SLOT(timerConnectionToPeer()));
 
   connect(this, SIGNAL(hostAnsweredHostIdentity()), this, SLOT(confirmAndUpdateHostIdentity()));
   connect(this, SIGNAL(hostAnsweredSelfIdentity()), this, SLOT(confirmAndUpdateSelfIdentity()));
@@ -50,6 +48,8 @@ void Application::attemptConnectToHost()
     return;
   }
   else hostidentity.setPort(hp);
+  hostidentityhasbeenconfirmed = false;
+  selfidentityhasbeenconfirmed = false;
   sendSelfIdentityToIdentity(hostidentity);
   waitwindow.setMessageAndShow("Connection to host, please wait..."); 
   emit waitingForConnectionToHost();
@@ -57,6 +57,7 @@ void Application::attemptConnectToHost()
 
 void Application::attemptConnectToPeer()
 {
+  peeridentityhasbeenconfirmed = false;
   sendSelfIdentityToIdentity(peeridentity);
 }
 
@@ -159,33 +160,31 @@ void Application::treatInDatagram()
 }
 
 
-//void timerConnectionToHost()
-//{
-//  QTime dieTime= QTime::currentTime().addSecs(delayhostanswer);
-//  while (QTime::currentTime() < dieTime)
-//  {
-//    if (socket.state() == 4)
-//      return;
-//    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-//  }
-//  connectionwindow.close();
-//  reportError("Host took too long to answer...");
-//}
+void Application::timerConnectionToHost()
+{
+  QTime dieTime= QTime::currentTime().addSecs(delayhostanswer);
+  while (QTime::currentTime() < dieTime)
+  {
+    if (hostidentityhasbeenconfirmed && selfidentityhasbeenconfirmed)
+      return;
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+  }
+  connectionwindow.close();
+  waitwindow.close();
+  reportError("Host took too long to answer...");
+}
 
-//void timerConnectionToHost()
-//{
-//  QTime dieTime= QTime::currentTime().addSecs(delayhostanswer);
-//  while (QTime::currentTime() < dieTime)
-//  {
-//    if (socket.state() == 4)
-//      return;
-//    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-//  }
-//  connectionwindow.close();
-//  reportError("Host took too long to answer...");
-//}
-//
-//void timerConnectionToPeer();
+void Application::timerConnectionToPeer()
+{
+  QTime dieTime= QTime::currentTime().addSecs(delayhostanswer);
+  while (QTime::currentTime() < dieTime)
+  {
+    if (peeridentityhasbeenconfirmed)
+      return;
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+  }
+  reportError("Peer took too long to answer...");
+}
 
 void Application::reportError(QString err)
 {
@@ -199,7 +198,6 @@ void Application::logMessage(QString mess)
 
 bool Application::sendOutDatagramToIdentity(const Identity& dest) 
 {
-  std::cout << socket.state() << " " << socketstatename(socket.state()) << std::endl;
   outdatagram.dheader.who = CLIENT;
   int nbbytes = socket.writeDatagram((char*) &outdatagram, DATAGRAMSIZE, dest.getAddress(), dest.getPort());
   if (nbbytes < DATAGRAMSIZE || nbbytes == -1)
@@ -217,15 +215,18 @@ void Application::confirmAndUpdateHostIdentity()
 { 
   hostidentity.fromDatagramIdentity(indatagram.getIdentityHD()); 
   emit hostIdentityConfirmed();
+  hostidentityhasbeenconfirmed = true;
 }
 void Application::confirmAndUpdateSelfIdentity() 
 { 
   selfidentity.fromDatagramIdentity(indatagram.getIdentityHD()); 
   emit selfIdentityConfirmed();
+  selfidentityhasbeenconfirmed = true;
 }
 void Application::confirmAndUpdatePeerIdentity() 
 { 
   peeridentity.fromDatagramIdentity(indatagram.getIdentityHD()); 
   emit peerIdentityConfirmed();
+  peeridentityhasbeenconfirmed = true;
 }
 

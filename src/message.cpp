@@ -1,18 +1,23 @@
 #include <iostream>
 #include <stdlib.h>
+#include <ctime>
 #include "message.h"
 #include "datagram.h"
 
 
 // ----- OUT MESSAGE -----
 
-OutMessage::OutMessage(){}
+OutMessage::OutMessage()
+{
+  srand(time(NULL));
+  header.id = rand();
+}
 
 void OutMessage::setDataIn(const char *_data, quint64 _size) 
 { 
   data=_data;
   size=_size;
-  header.id = rand();
+  header.id ++;
   nbdg2send = size/MESSAGEDATASIZE + 1;
   nbdgsent = 0;
   nbbytessent = 0;
